@@ -1,0 +1,124 @@
+{% extends 'teacher/layout.html' %}
+{% block teacher_page_title %}Performance Analytics{% endblock %}
+
+{% block teacher_content %}
+<div class="space-y-6">
+  <form method="get" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="grid gap-4 md:grid-cols-5">
+      <div>
+        <label class="text-sm font-medium">Academic Year</label>
+        <select name="academic_year" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+          <option value="">Select</option>
+          {% for year in years %}
+          <option value="{{ year }}" {% if context.academic_year == year %}selected{% endif %}>{{ year }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Course</label>
+        <select name="course" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+          <option value="">Select</option>
+          {% for course in courses %}
+          <option value="{{ course }}" {% if context.course == course %}selected{% endif %}>{{ course }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Semester</label>
+        <select name="semester" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+          <option value="">Select</option>
+          {% for sem in semesters %}
+          <option value="{{ sem }}" {% if context.semester|string == sem|string %}selected{% endif %}>Semester {{ sem }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Subject</label>
+        <select name="subject" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+          <option value="">Select subject</option>
+          {% for sub in subjects %}
+          <option value="{{ sub }}" {% if context.subject == sub %}selected{% endif %}>{{ sub }}</option>
+          {% endfor %}
+        </select>
+        <p class="mt-1 text-xs text-slate-500">Pick year, course, and semester first to load allocated subjects.</p>
+      </div>
+      <div class="flex items-end">
+        <button class="w-full rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white">Load Analytics</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-xs uppercase tracking-wide text-slate-500">Selected Subject</div>
+      <div class="mt-2 text-lg font-bold text-slate-900">{{ context.subject or 'Not selected' }}</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-xs uppercase tracking-wide text-slate-500">Top List Entries</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900">{{ top_rows|length }}</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-xs uppercase tracking-wide text-slate-500">Bottom List Entries</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900">{{ bottom_rows|length }}</div>
+    </div>
+    <div class="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
+      <div class="text-xs uppercase tracking-wide text-cyan-700">Available Subjects</div>
+      <div class="mt-2 text-3xl font-bold text-cyan-900">{{ subjects|length }}</div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 class="mb-4 text-lg font-semibold">Top 5 Students</h3>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-100 text-slate-700">
+          <tr>
+            <th class="px-3 py-2 text-left">Rank</th>
+            <th class="px-3 py-2 text-left">USN</th>
+            <th class="px-3 py-2 text-left">Student</th>
+            <th class="px-3 py-2 text-right">Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in top_rows %}
+          <tr class="border-t border-slate-200">
+            <td class="px-3 py-2">{{ loop.index }}</td>
+            <td class="px-3 py-2">{{ row.reg_no }}</td>
+            <td class="px-3 py-2">{{ row.student_name }}</td>
+            <td class="px-3 py-2 text-right font-semibold">{{ row.grand_total }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="px-3 py-6 text-center text-slate-500">No confirmed data found for the selected subject.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 class="mb-4 text-lg font-semibold">Bottom 5 Students</h3>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-100 text-slate-700">
+          <tr>
+            <th class="px-3 py-2 text-left">Rank</th>
+            <th class="px-3 py-2 text-left">USN</th>
+            <th class="px-3 py-2 text-left">Student</th>
+            <th class="px-3 py-2 text-right">Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in bottom_rows %}
+          <tr class="border-t border-slate-200">
+            <td class="px-3 py-2">{{ loop.index }}</td>
+            <td class="px-3 py-2">{{ row.reg_no }}</td>
+            <td class="px-3 py-2">{{ row.student_name }}</td>
+            <td class="px-3 py-2 text-right font-semibold">{{ row.grand_total }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="px-3 py-6 text-center text-slate-500">No confirmed data found for the selected subject.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

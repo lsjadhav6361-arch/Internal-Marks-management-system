@@ -1,0 +1,689 @@
+Final Prompt for Teacher Module
+
+Build the Teacher Module for my IMMS (Internal Marks Management System) project using Python Flask + MySQL only. Do not use SQLite anywhere.
+
+I want a working Teacher Module that is backend-focused first, but the frontend languages, template structure, and overall styling approach must remain the same as my existing Admin Module. Do not introduce any new frontend framework like React or Vue. If my admin module uses Flask Jinja templates with HTML, CSS, JavaScript, Bootstrap, or Tailwind, then use the same stack, same structure, same layout style, and similar component arrangement for the Teacher Module too. I do not want the frontend changed to another technology.
+
+The design can stay simple for now, but the important elements and flow must be present.
+
+Core Tech Requirements
+
+Backend: Python Flask
+
+Database: MySQL only
+
+Frontend: same frontend languages and template style as existing admin module
+
+Excel import/export: use pandas / openpyxl
+
+All data must be stored in MySQL database
+
+Keep code modular and easy to plug into an existing project
+
+Main Goal
+
+Create a Teacher Module where the teacher can:
+
+login
+
+select Academic Year
+
+select Course (example: BCA, BSc)
+
+select Semester
+
+after that, the system should automatically fetch:
+
+the students belonging to that selected academic year + course + semester
+
+the internal marks settings already configured by Admin/HOD for that same academic year + course + semester
+
+then teacher can select subject
+
+enter student marks manually
+
+upload marks through Excel
+
+validate marks based on admin-defined IA settings
+
+save marks in MySQL
+
+prevent invalid entry
+
+export saved marks to Excel
+
+optionally confirm/finalize marks later
+
+Important Selection Flow
+
+This is very important and must be implemented exactly:
+
+Teacher flow after login
+
+Teacher logs in
+
+Teacher selects:
+
+Academic Year
+
+Course
+
+Semester
+
+Once these are selected, the system must automatically:
+
+fetch all students belonging to that academic year + course + semester
+
+fetch the internal marks system/settings configured by Admin for that same academic year + course + semester
+
+Then teacher selects subject
+
+Only after both student data and admin IA settings are found, the marks entry page should open
+
+Required behavior
+
+If no students exist for the selected academic year + course + semester, show:
+"No students found for the selected academic year, course, and semester."
+
+If no admin IA settings exist for the selected academic year + course + semester, show:
+"Internal mark settings are not configured by Admin for this selection."
+
+The student list shown to the teacher must be filtered strictly based on the selected:
+
+academic year
+
+course
+
+semester
+
+Important Functional Requirements
+1. MySQL backend only
+
+Do not use SQLite anywhere.
+Use MySQL tables and proper foreign keys wherever possible.
+
+2. Teacher marks entry must follow admin-defined mark settings
+
+The teacher module must work based on Admin/HOD-defined internal marks settings for each academic year + course + semester.
+
+For each semester, admin may define:
+
+Assignment max marks
+
+IA1 max marks
+
+IA1 converted marks
+
+IA2 max marks
+
+IA2 converted marks
+
+Optional practical marks
+
+Total internal marks
+
+Example:
+
+Assignment = 5
+
+IA1 = 40, converted to 5
+
+IA2 = 80, converted to 10
+
+Total = 20
+
+When teacher selects academic year + course + semester, the system should fetch and apply that mark pattern automatically from MySQL.
+
+Then when teacher enters marks, the form should show the same structure as defined by admin, such as:
+
+Assignment max = 5
+
+IA1 = 40 → 5
+
+IA2 = 80 → 10
+
+3. Validation while entering marks
+
+This is very important.
+
+While entering marks manually:
+
+If a teacher enters marks greater than the allowed maximum, show an immediate validation error or notification
+
+Example: if IA1 max is 40 and teacher enters 45, show:
+"IA1 marks cannot exceed 40"
+
+Until that wrong value is corrected, the teacher should not be allowed to continue entering or saving other marks
+
+Same validation must apply for:
+
+assignment marks
+
+IA1 marks
+
+IA2 marks
+
+practical marks if enabled
+
+Also block negative values
+
+Use both:
+
+frontend validation
+
+backend validation
+
+Backend validation is compulsory
+
+4. Excel upload for marks
+
+Add an option in Teacher Module to upload marks using an Excel file.
+
+Requirements:
+
+teacher selects academic year, course, semester, and subject first
+
+then uploads Excel file
+
+uploaded marks must be validated before saving
+
+all valid data should be inserted into MySQL
+
+invalid rows should be rejected with proper error messages
+
+uploaded data must follow the admin-defined mark system for that selected academic year + course + semester
+
+5. Duplicate student entries should not be allowed during Excel upload
+
+This is very important.
+
+While uploading marks through Excel:
+
+If the same student appears more than once in the uploaded Excel file, it should be rejected
+
+Detect duplicates based on:
+
+register number / USN / roll number
+
+Show clear error:
+"Duplicate student entry found in Excel for USN XXXXXX"
+
+Also:
+
+if the same student already has marks saved for the same subject + semester + academic year + course, then handle it safely
+
+preferred behavior:
+
+prevent accidental duplicate insertion
+
+allow update only if explicitly intended
+
+6. All data must be stored in database
+
+Nothing should remain temporary only in UI.
+
+Store in MySQL:
+
+teacher details
+
+subject allocations
+
+IA settings used
+
+selected academic year / course / semester context
+
+student marks
+
+converted marks
+
+upload logs if possible
+
+confirmation/finalization status
+
+7. Excel template download/sample format
+
+Add a Download Excel Template button so teachers know the correct format before uploading.
+
+Create a sample Excel template with columns like:
+
+USN / Register No
+
+Student Name
+
+Assignment Marks
+
+IA1 Marks
+
+IA2 Marks
+
+IA1 Practical Marks (optional)
+
+IA2 Practical Marks (optional)
+
+Example template should be downloadable from Teacher Module.
+
+Also show a note on page:
+
+do not change column names
+
+do not keep duplicate student rows
+
+marks should not exceed allowed maximum
+
+blank or invalid values should be highlighted
+
+Teacher Module Pages Required
+A. Teacher Dashboard
+
+Simple page showing:
+
+teacher name
+
+assigned subjects
+
+academic year selector
+
+course selector
+
+semester selector
+
+quick actions:
+
+Enter Marks
+
+Upload Excel
+
+View Saved Marks
+
+Export Excel
+
+Keep the page structure and frontend style similar to the existing Admin Module.
+
+B. Selection Page / Filter Page
+
+Teacher selects:
+
+academic year
+
+course
+
+semester
+
+subject
+
+After selection:
+
+load students for that academic year + course + semester
+
+load IA settings from admin table for that academic year + course + semester
+
+If no settings exist, show:
+"Internal mark settings not configured by Admin for this selection."
+
+If no students exist, show:
+"No students found for the selected academic year, course, and semester."
+
+C. Manual Marks Entry Page
+
+This page should include:
+
+subject details at top
+
+academic year, course, and semester clearly shown
+
+info cards showing:
+
+Assignment Max
+
+IA1 Max → Converted To
+
+IA2 Max → Converted To
+
+practical enabled/disabled
+
+total marks
+
+student-wise marks entry table
+
+The table should include:
+
+serial number
+
+USN / register no
+
+student name
+
+section if available
+
+assignment marks input
+
+IA1 marks input
+
+IA2 marks input
+
+optional practical fields
+
+converted IA1
+
+converted IA2
+
+grand total
+
+status
+
+Behavior:
+
+converted marks should auto-calculate
+
+grand total should auto-calculate
+
+max validations must work immediately
+
+if one invalid mark is entered, block further continue/save until corrected
+
+save button should save all valid marks to MySQL
+
+The layout and template style should remain consistent with the admin module frontend style.
+
+D. Excel Upload Page
+
+Include:
+
+academic year / course / semester / subject info
+
+file upload input
+
+download sample template button
+
+validation summary after upload
+
+duplicate detection
+
+max mark validation
+
+success and error messages
+
+The Excel upload should validate against:
+
+selected academic year
+
+selected course
+
+selected semester
+
+selected subject
+
+matching admin IA settings
+
+E. View / Export Marks Page
+
+Teacher should be able to:
+
+view already entered marks
+
+filter by academic year / course / semester / subject
+
+export current marks to Excel
+
+export only confirmed or saved data if needed
+
+Important Business Logic
+Marks conversion formula
+
+Use admin-defined conversion rules:
+
+Assignment marks may be direct
+
+Converted IA1 = (obtained_ia1 / ia1_max) * ia1_convert_to
+
+Converted IA2 = (obtained_ia2 / ia2_max) * ia2_convert_to
+
+Final total = assignment + converted IA1 + converted IA2 (+ practical if required by settings)
+
+Round values to 2 decimals if needed.
+
+Suggested MySQL Tables
+
+Please create or assume proper MySQL schema for:
+
+1. teachers
+
+id
+
+name
+
+email
+
+password
+
+department
+
+etc.
+
+2. teacher_subjects / teacher_allocations
+
+id
+
+teacher_id
+
+academic_year
+
+course
+
+semester
+
+subject_id or subject_name
+
+department
+
+3. students
+
+id
+
+usn/register_no
+
+student_name
+
+semester
+
+academic_year
+
+course
+
+section
+
+4. ia_settings
+
+Admin-defined settings table:
+
+id
+
+academic_year
+
+course
+
+semester
+
+assignment_max
+
+ia1_max
+
+ia1_convert_to
+
+ia2_max
+
+ia2_convert_to
+
+ia1_practical_enabled
+
+ia1_practical_max
+
+ia2_practical_enabled
+
+ia2_practical_max
+
+total_marks
+
+5. internal_marks
+
+Store teacher-entered marks:
+
+id
+
+student_id
+
+usn
+
+student_name
+
+teacher_id
+
+academic_year
+
+course
+
+semester
+
+subject
+
+assignment_marks
+
+ia1_marks
+
+ia2_marks
+
+ia1_practical_marks
+
+ia2_practical_marks
+
+ia1_converted
+
+ia2_converted
+
+grand_total
+
+status
+
+created_at
+
+updated_at
+
+Also enforce uniqueness where needed so duplicate records for the same student + subject + academic year + course + semester are controlled.
+
+Validation Rules
+Manual entry validation
+
+Please implement:
+
+no marks greater than allowed max
+
+no negative marks
+
+optional absent handling if needed
+
+save blocked if any invalid field exists
+
+if a wrong value is entered, teacher should not continue until corrected
+
+Excel validation
+
+Please implement:
+
+required columns must exist
+
+no duplicate USN rows in uploaded Excel file
+
+no marks greater than allowed max
+
+no invalid data types
+
+no empty USN
+
+only students belonging to selected academic year + course + semester should be accepted
+
+only marks matching selected subject context should be saved
+
+UI Guidance
+
+Keep the design simple for now.
+
+But do not change the frontend technology or general page style from the existing Admin Module.
+
+Include these elements:
+
+top heading
+
+breadcrumb or small navigation
+
+subject/semester details card
+
+marks settings summary cards
+
+student marks table
+
+save button
+
+upload excel button
+
+download template button
+
+export excel button
+
+error alerts and success alerts
+
+The sample image is only a reference for structure and page elements, not exact design.
+All major elements should be present, but frontend language/style must match the admin module.
+
+What I want in the output
+
+Please generate:
+
+Flask route structure for Teacher Module
+
+MySQL schema for required tables
+
+Database connection code
+
+Manual marks entry logic
+
+Excel upload logic
+
+Duplicate detection logic in Excel upload
+
+Max mark validation logic
+
+Excel template download feature
+
+Export marks to Excel feature
+
+HTML templates for:
+
+teacher dashboard
+
+selection page
+
+marks entry
+
+excel upload
+
+view/export marks
+
+Also keep the code easy to plug into an existing project.
+
+Extra instructions
+
+Wherever possible:
+
+separate backend logic into functions
+
+use clear file structure
+
+comment important code
+
+do not skip validation
+
+do not give only explanation — give working code structure
+
+keep frontend stack and template style same as admin module
+
+do not introduce a different UI framework

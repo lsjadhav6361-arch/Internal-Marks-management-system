@@ -1,0 +1,2 @@
+Teacher module connected into routes/teacher_routes.py with templates in templates/teacher/.
+Use teacher@example.com / demo123 for demo login after init_db runs.

@@ -1,0 +1,92 @@
+{% extends 'teacher/layout.html' %}
+{% block teacher_page_title %}Upload Marks via Excel{% endblock %}
+
+{% block teacher_content %}
+<form method="post" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+  <div>
+    <label class="text-sm font-medium">Academic Year</label>
+    <select name="academic_year" class="w-full border rounded-lg px-3 py-2 mt-1">
+      <option value="">Select</option>
+      {% for year in years %}
+      <option value="{{ year }}">{{ year }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium">Course</label>
+    <select name="course" class="w-full border rounded-lg px-3 py-2 mt-1">
+      <option value="">Select</option>
+      {% for course in courses %}
+      <option value="{{ course }}">{{ course }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium">Semester</label>
+    <select name="semester" class="w-full border rounded-lg px-3 py-2 mt-1">
+      <option value="">Select</option>
+      {% for semester in semesters %}
+      <option value="{{ semester }}">{{ semester }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium">Subject</label>
+    <input name="subject" class="w-full border rounded-lg px-3 py-2 mt-1" placeholder="Enter allocated subject">
+  </div>
+
+  <div>
+    <label class="text-sm font-medium">Excel File</label>
+    <input type="file" name="file" class="w-full border rounded-lg px-3 py-2 mt-1" accept=".xlsx,.xls">
+  </div>
+
+  <div class="lg:col-span-5 flex gap-3 flex-wrap items-center">
+    <button class="px-4 py-2 rounded-lg bg-slate-800 text-white">Upload Excel</button>
+    <p class="text-sm text-slate-500">Upload valid rows first. Review them later on the view page and confirm selected rows.</p>
+  </div>
+</form>
+
+<!-- Provide a link to download an Excel template with the required columns.  
+     The link's query parameters (academic year/course/semester) are populated on click,
+     based on the current form selections.  If no selections are made, a blank
+     template is downloaded. -->
+<div class="mt-6 flex items-center gap-3">
+  <a
+    id="download-template-link"
+    href="{{ url_for('teacher.download_template') }}"
+    class="inline-block rounded-lg bg-cyan-600 px-4 py-2 text-white hover:bg-cyan-700"
+    onclick="populateTemplateHref(event)"
+  >
+    Download Template
+  </a>
+  <span class="text-sm text-slate-500">Use this template to prepare your Excel file. Fill in the marks and upload above.</span>
+</div>
+
+<div class="mt-6 border rounded-xl p-4 bg-slate-50 text-sm">
+  <div class="font-semibold mb-2">Template columns</div>
+  <div>USN, Student Name, Assignment Marks, IA1 Marks, IA2 Marks, Practical Marks, Query</div>
+</div>
+
+<script>
+  function populateTemplateHref(event) {
+    // This script reads the current form selections and updates the download link's href
+    // so that a more tailored template can be served.  If any value is missing, it
+    // simply omits that parameter from the query string.
+    const form = event.target.closest('body').querySelector('form');
+    if (!form) return;
+    const year = form.querySelector('select[name="academic_year"]').value.trim();
+    const course = form.querySelector('select[name="course"]').value.trim();
+    const semester = form.querySelector('select[name="semester"]').value.trim();
+    // Build query string dynamically
+    const params = new URLSearchParams();
+    if (year) params.append('academic_year', year);
+    if (course) params.append('course', course);
+    if (semester) params.append('semester', semester);
+    const baseUrl = '{{ url_for('teacher.download_template') }}';
+    event.target.href = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  }
+</script>
+{% endblock %}

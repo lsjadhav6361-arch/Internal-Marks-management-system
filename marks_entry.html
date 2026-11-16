@@ -1,0 +1,290 @@
+{% extends 'teacher/layout.html' %}
+{% block teacher_page_title %}Manual Marks Entry{% endblock %}
+
+{% block teacher_content %}
+<div class="space-y-6">
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-sm text-slate-500">Academic Year</div>
+      <div class="mt-1 text-xl font-semibold text-slate-800">{{ context.academic_year }}</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-sm text-slate-500">Course / Semester</div>
+      <div class="mt-1 text-xl font-semibold text-slate-800">{{ context.course }} / Semester {{ context.semester }}</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="text-sm text-slate-500">Subject</div>
+      <div class="mt-1 text-xl font-semibold text-slate-800">{{ context.subject }}</div>
+    </div>
+    <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
+      <div class="text-sm text-slate-500">Maximum Pattern</div>
+      <div class="mt-1 text-base font-semibold leading-7 text-slate-800">
+        Assignment {{ settings.assignment_max }}, IA1 {{ settings.ia1_max }}, IA2 {{ settings.ia2_max }}{% if settings.practical_enabled %}, Practical {{ settings.practical_max }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+      <div class="max-w-xl xl:pr-6">
+        <h3 class="text-2xl font-bold leading-tight text-slate-900">Enter and verify student marks</h3>
+        <p class="mt-2 text-sm leading-7 text-slate-500">Wrong values are blocked instantly. Search students fast and review any query in a clean compact card.</p>
+      </div>
+
+      <div class="w-full xl:w-auto">
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-[300px_180px_140px_140px] xl:items-stretch">
+          <input id="searchInput" type="text" placeholder="Search USN or student name"
+                 class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+          <select id="statusFilter"
+                  class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+            <option value="">All rows</option>
+            <option value="filled">Filled</option>
+            <option value="empty">Not entered</option>
+          </select>
+          <div class="flex h-14 min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 shadow-sm">
+            <div class="truncate text-sm text-slate-500">Visible Students</div>
+            <div id="visibleCount" class="text-lg font-semibold leading-tight text-slate-800">{{ students|length }}</div>
+          </div>
+          <div class="flex h-14 min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 shadow-sm">
+            <div class="truncate text-sm text-slate-500">Saved Rows</div>
+            <div class="text-lg font-semibold leading-tight text-slate-800">{{ saved_map|length }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('teacher.save_marks') }}">
+    <input type="hidden" name="academic_year" value="{{ context.academic_year }}">
+    <input type="hidden" name="course" value="{{ context.course }}">
+    <input type="hidden" name="semester" value="{{ context.semester }}">
+    <input type="hidden" name="subject" value="{{ context.subject }}">
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="min-w-[1550px] w-full border-separate border-spacing-0 text-sm">
+          <thead class="sticky top-0 z-20 bg-slate-900 text-white">
+            <tr>
+              <th class="border-b border-slate-700 px-4 py-4 text-left">#</th>
+              <th class="border-b border-slate-700 px-4 py-4 text-left">USN</th>
+              <th class="border-b border-slate-700 px-4 py-4 text-left">Student</th>
+              <th class="border-b border-slate-700 px-4 py-4 text-center">Assignment<br><span class="text-xs font-normal text-slate-300">Max {{ settings.assignment_max }}</span></th>
+              <th class="border-b border-slate-700 px-4 py-4 text-center">IA1<br><span class="text-xs font-normal text-slate-300">Max {{ settings.ia1_max }}</span></th>
+              <th class="border-b border-slate-700 px-4 py-4 text-center">IA2<br><span class="text-xs font-normal text-slate-300">Max {{ settings.ia2_max }}</span></th>
+              {% if settings.practical_enabled %}
+              <th class="border-b border-slate-700 px-4 py-4 text-center">Practical<br><span class="text-xs font-normal text-slate-300">Max {{ settings.practical_max }}</span></th>
+              {% endif %}
+              <th class="border-b border-slate-700 px-4 py-4 text-center">Total<br><span class="text-xs font-normal text-slate-300">Assignment + converted IA values</span></th>
+              <th class="border-b border-slate-700 px-4 py-4 text-left">Student Query</th>
+              <th class="border-b border-slate-700 px-4 py-4 text-center">Status</th>
+            </tr>
+          </thead>
+
+          <tbody id="tableBody" class="bg-white">
+            {% for student in students %}
+              {% set saved = saved_map.get(student.id, {}) %}
+              {% set existing_total = (saved.assignment_marks or 0) + (saved.ia1_converted or 0) + (saved.ia2_converted or 0) + (saved.practical_marks or 0) %}
+              <tr class="student-row border-b border-slate-200 hover:bg-blue-50/60 transition"
+                  data-reg="{{ student.reg_no }}"
+                  data-name="{{ student.student_name }}"
+                  data-status="{{ saved.status if saved else 'pending' }}"
+                  data-assignment="{{ saved.assignment_marks if saved else '' }}"
+                  data-ia1="{{ saved.ia1_marks if saved else '' }}"
+                  data-ia2="{{ saved.ia2_marks if saved else '' }}"
+                  data-practical="{{ saved.practical_marks if saved else '' }}"
+                  data-total="{{ existing_total }}">
+                <td class="border-b border-slate-200 px-4 py-4 text-slate-500">{{ loop.index }}</td>
+                <td class="border-b border-slate-200 px-4 py-4 font-medium text-slate-800">{{ student.reg_no }}</td>
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  <div class="font-semibold leading-6 text-slate-800">{{ student.student_name }}</div>
+                  <div class="text-xs text-slate-500">{{ student.section or 'Section not set' }}</div>
+                </td>
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  <div class="space-y-1 text-center">
+                    <input class="mark-field assignment-field mx-auto block w-24 rounded-xl border border-slate-300 px-3 py-2 text-center outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                           type="number" min="0" max="{{ settings.assignment_max }}" step="0.01"
+                           data-max="{{ settings.assignment_max }}" data-label="Assignment"
+                           name="assignment_{{ student.reg_no }}" value="{{ saved.assignment_marks if saved else '' }}" required>
+                    <div class="error-slot min-h-[18px] text-xs text-rose-600"></div>
+                  </div>
+                </td>
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  <div class="space-y-1 text-center">
+                    <input class="mark-field ia1-field mx-auto block w-24 rounded-xl border border-slate-300 px-3 py-2 text-center outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                           type="number" min="0" max="{{ settings.ia1_max }}" step="0.01"
+                           data-max="{{ settings.ia1_max }}" data-convert-to="{{ settings.ia1_convert_to }}" data-label="IA1"
+                           name="ia1_{{ student.reg_no }}" value="{{ saved.ia1_marks if saved else '' }}" required>
+                    <div class="error-slot min-h-[18px] text-xs text-rose-600"></div>
+                  </div>
+                </td>
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  <div class="space-y-1 text-center">
+                    <input class="mark-field ia2-field mx-auto block w-24 rounded-xl border border-slate-300 px-3 py-2 text-center outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                           type="number" min="0" max="{{ settings.ia2_max }}" step="0.01"
+                           data-max="{{ settings.ia2_max }}" data-convert-to="{{ settings.ia2_convert_to }}" data-label="IA2"
+                           name="ia2_{{ student.reg_no }}" value="{{ saved.ia2_marks if saved else '' }}" required>
+                    <div class="error-slot min-h-[18px] text-xs text-rose-600"></div>
+                  </div>
+                </td>
+
+                {% if settings.practical_enabled %}
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  <div class="space-y-1 text-center">
+                    <input class="mark-field practical-field mx-auto block w-24 rounded-xl border border-slate-300 px-3 py-2 text-center outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                           type="number" min="0" max="{{ settings.practical_max }}" step="0.01"
+                           data-max="{{ settings.practical_max }}" data-label="Practical"
+                           name="practical_{{ student.reg_no }}" value="{{ saved.practical_marks if saved else '' }}" {% if settings.practical_enabled %}required{% endif %}>
+                    <div class="error-slot min-h-[18px] text-xs text-rose-600"></div>
+                  </div>
+                </td>
+                {% endif %}
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top text-center">
+                  <div class="inline-flex min-w-[120px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-700 total-cell">{{ '%.2f'|format(existing_total) }}</div>
+                </td>
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top">
+                  {% if latest_query %}
+                    <div class="max-w-[240px] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Student Query</div>
+                        {% if (latest_query.status or '')|lower in ['approved', 'solved'] %}
+                          <span class="inline-flex rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-700">Approved</span>
+                        {% else %}
+                          <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-700">Pending</span>
+                        {% endif %}
+                      </div>
+                      <div class="mt-2 break-words text-sm leading-6 text-amber-900">{{ latest_query.query_text }}</div>
+                      <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span>{{ latest_query.created_at }}</span>
+                        {% if (latest_query.status or '')|lower not in ['approved', 'solved'] %}
+                          <button type="submit" formaction="{{ url_for('teacher.approve_query', query_id=latest_query.id) }}" formmethod="post" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700">Approve</button>
+                        {% elif latest_query.solved_at %}
+                          <span>Approved on {{ latest_query.solved_at }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% else %}
+                    <span class="text-sm text-slate-400">No query</span>
+                  {% endif %}
+                </td>
+
+                <td class="border-b border-slate-200 px-4 py-4 align-top text-center">
+                  {% set status = saved.status if saved else 'not saved' %}
+                  {% if status == 'confirmed' %}
+                    <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Confirmed</span>
+                  {% elif status in ['saved', 'submitted'] %}
+                    <span class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">Submitted</span>
+                  {% else %}
+                    <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 pt-1">
+      <button type="submit" class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Save Marks</button>
+      <a href="{{ url_for('teacher.view_marks', academic_year=context.academic_year, course=context.course, semester=context.semester, subject=context.subject) }}" class="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">View Saved Marks</a>
+      <a href="{{ url_for('teacher.download_template', academic_year=context.academic_year, course=context.course, semester=context.semester) }}" class="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Download Excel Template</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const markFields = document.querySelectorAll('.mark-field');
+  const rows = document.querySelectorAll('.student-row');
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const visibleCount = document.getElementById('visibleCount');
+
+  function sanitizeAndValidate(field) {
+    const max = parseFloat(field.dataset.max || 0);
+    const label = field.dataset.label || 'Marks';
+    const errorSlot = field.parentElement.querySelector('.error-slot');
+    let value = field.value.trim();
+
+    if (value === '') {
+      field.classList.remove('border-rose-400', 'bg-rose-50');
+      errorSlot.textContent = '';
+      updateRowTotal(field.closest('tr'));
+      return true;
+    }
+
+    value = value.replace(/[^\d.\-]/g, '');
+    if (value !== field.value) field.value = value;
+
+    const numeric = parseFloat(value);
+    if (Number.isNaN(numeric) || numeric < 0 || numeric > max) {
+      field.value = '';
+      field.classList.add('border-rose-400', 'bg-rose-50');
+      errorSlot.textContent = `${label} must be between 0 and ${max}.`;
+      updateRowTotal(field.closest('tr'));
+      return false;
+    }
+
+    field.classList.remove('border-rose-400', 'bg-rose-50');
+    errorSlot.textContent = '';
+    updateRowTotal(field.closest('tr'));
+    return true;
+  }
+
+  function updateRowTotal(row) {
+    const totalCell = row.querySelector('.total-cell');
+    const assignment = parseFloat(row.querySelector('.assignment-field')?.value || 0);
+    const ia1Field = row.querySelector('.ia1-field');
+    const ia2Field = row.querySelector('.ia2-field');
+    const practical = parseFloat(row.querySelector('.practical-field')?.value || 0);
+    const ia1 = parseFloat(ia1Field?.value || 0);
+    const ia2 = parseFloat(ia2Field?.value || 0);
+    const ia1Max = parseFloat(ia1Field?.dataset.max || 0);
+    const ia2Max = parseFloat(ia2Field?.dataset.max || 0);
+    const ia1ConvertTo = parseFloat(ia1Field?.dataset.convertTo || 0);
+    const ia2ConvertTo = parseFloat(ia2Field?.dataset.convertTo || 0);
+    const ia1Converted = ia1Max > 0 ? (ia1 / ia1Max) * ia1ConvertTo : 0;
+    const ia2Converted = ia2Max > 0 ? (ia2 / ia2Max) * ia2ConvertTo : 0;
+    const total = assignment + ia1Converted + ia2Converted + practical;
+    if (totalCell) totalCell.textContent = total.toFixed(2);
+    row.dataset.total = total.toFixed(2);
+    row.dataset.assignment = row.querySelector('.assignment-field')?.value || '';
+    row.dataset.ia1 = row.querySelector('.ia1-field')?.value || '';
+    row.dataset.ia2 = row.querySelector('.ia2-field')?.value || '';
+    row.dataset.practical = row.querySelector('.practical-field')?.value || '';
+  }
+
+  markFields.forEach(field => {
+    field.addEventListener('input', () => sanitizeAndValidate(field));
+    field.addEventListener('blur', () => sanitizeAndValidate(field));
+  });
+
+  function filterRows() {
+    const search = (searchInput?.value || '').toLowerCase().trim();
+    const status = (statusFilter?.value || '').toLowerCase();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const reg = (row.dataset.reg || '').toLowerCase();
+      const name = (row.dataset.name || '').toLowerCase();
+      const hasSearch = !search || reg.includes(search) || name.includes(search);
+      const filled = row.dataset.assignment || row.dataset.ia1 || row.dataset.ia2 || row.dataset.practical;
+      const hasStatus = !status || (status === 'filled' && filled) || (status === 'empty' && !filled);
+      const show = hasSearch && hasStatus;
+      row.style.display = show ? '' : 'none';
+      if (show) visible += 1;
+    });
+
+    if (visibleCount) visibleCount.textContent = visible;
+  }
+
+  searchInput?.addEventListener('input', filterRows);
+  statusFilter?.addEventListener('change', filterRows);
+  rows.forEach(updateRowTotal);
+  filterRows();
+</script>
+{% endblock %}

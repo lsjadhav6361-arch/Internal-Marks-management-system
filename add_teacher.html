@@ -1,0 +1,181 @@
+{% extends "admin/layout.html" %}
+{% block title %}Add Teacher | IMMS{% endblock %}
+{% block page_heading %}Add Teacher{% endblock %}
+
+{% block content %}
+<section class="grid gap-6 xl:grid-cols-[1.25fr_0.9fr]">
+  <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
+    <div class="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 px-8 py-8 text-white">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-100">
+        Faculty Setup
+      </div>
+      <h2 class="mt-4 text-3xl font-bold tracking-tight">Create a standout teacher profile</h2>
+      <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+        Save full teacher information now, including multiple department-semester-subject assignments. This backend is ready for the teacher module you described next.
+      </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.add_teacher') }}" class="px-8 py-8">
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Teacher Name</label>
+          <input name="name" placeholder="Enter full name" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" required>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Email Address</label>
+          <input type="email" name="email" placeholder="teacher@college.edu" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" required>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Phone Number</label>
+          <input type="tel" name="phone" placeholder="Enter 10-digit phone number" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" required>
+          <p class="mt-2 text-xs text-slate-500">Only 10 digits allowed.</p>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Qualification</label>
+          <input name="qualification" placeholder="Example: MCA, M.Sc., NET" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" required>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Experience</label>
+          <input name="experience" placeholder="Example: 5 years" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100">
+        </div>
+
+        <div class="md:col-span-2">
+          <div class="mb-3 flex items-center justify-between gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Teaching Assignments</label>
+              <p class="mt-1 text-xs text-slate-500">Add one or more department + semester + subject combinations for the same teacher.</p>
+            </div>
+            <button type="button" id="add-assignment" class="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100">+ Add Subject</button>
+          </div>
+
+          <div id="assignment-wrapper" class="space-y-4">
+            <div class="assignment-card rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div class="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Department</label>
+                  <select name="department[]" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" required>
+                    <option value="">Select department</option>
+                    <option value="BCA">BCA</option>
+                    <option value="BSc">BSc</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Semester</label>
+                  <select name="semester[]" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" required>
+                    <option value="">Select semester</option>
+                    {% for sem in range(1, 7) %}
+                    <option value="{{ sem }}">Semester {{ sem }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Subject</label>
+                  <input name="subject[]" placeholder="Example: DBMS" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" required>
+                </div>
+              </div>
+              <div class="mt-4 flex justify-end">
+                <button type="button" class="remove-assignment rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Other Details</label>
+          <textarea name="notes" rows="4" placeholder="Optional notes about the teacher, designation, or anything useful for admin." class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-8 rounded-[1.5rem] border border-dashed border-indigo-200 bg-indigo-50/70 p-5">
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Backend logic now ready</h3>
+            <p class="mt-1 text-sm text-slate-600">Each teacher is saved once, and every department-semester-subject combination is stored separately for future teacher login and marks entry.</p>
+          </div>
+          <div class="grid gap-2 text-sm text-slate-700">
+            <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Multiple subjects per teacher</div>
+            <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-indigo-500"></span> Department and semester aware</div>
+            <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-violet-500"></span> Ready for teacher marks module</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <button class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">
+          Save Teacher
+        </button>
+        <a href="{{ url_for('admin.teachers') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          Back to Teachers
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <aside class="space-y-6">
+    <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
+      <div class="bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 p-6 text-white">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/80">Saved for later teacher module</p>
+        <h3 class="mt-3 text-2xl font-bold">What admin stores today</h3>
+        <p class="mt-2 text-sm leading-6 text-white/85">The teacher's exact workload is now ready so the correct department, semester, and subjects can appear automatically when the teacher logs in later.</p>
+      </div>
+      <div class="p-6">
+        <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+          <div class="flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 to-indigo-600 text-lg font-bold text-white">T</div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900">Teacher profile card</p>
+              <p class="text-xs text-slate-500">Now built for single or multiple assignments</p>
+            </div>
+          </div>
+          <div class="mt-5 space-y-3">
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">Teacher name, email, phone</div>
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">Qualification and experience</div>
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">Department + semester + subject mapping</div>
+            <div class="rounded-2xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white">Save Teacher</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-500">Why this backend matters</p>
+      <ul class="mt-4 space-y-4 text-sm text-slate-600">
+        <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-indigo-500"></span><span>When a teacher logs in, the profile can show their exact subjects from admin data.</span></li>
+        <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-violet-500"></span><span>The same teacher can be mapped to different semesters without duplicate teacher records.</span></li>
+        <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-cyan-500"></span><span>This structure is ready for the future marks entry table by department, semester, and subject.</span></li>
+      </ul>
+    </div>
+  </aside>
+</section>
+
+<script>
+  const wrapper = document.getElementById('assignment-wrapper');
+  const addButton = document.getElementById('add-assignment');
+
+  function attachRemoveHandlers() {
+    document.querySelectorAll('.remove-assignment').forEach((button) => {
+      button.onclick = function () {
+        const cards = wrapper.querySelectorAll('.assignment-card');
+        if (cards.length === 1) {
+          return;
+        }
+        this.closest('.assignment-card').remove();
+      };
+    });
+  }
+
+  addButton.addEventListener('click', () => {
+    const template = wrapper.querySelector('.assignment-card').cloneNode(true);
+    template.querySelectorAll('input').forEach((input) => input.value = '');
+    template.querySelectorAll('select').forEach((select) => select.selectedIndex = 0);
+    wrapper.appendChild(template);
+    attachRemoveHandlers();
+  });
+
+  attachRemoveHandlers();
+</script>
+{% endblock %}

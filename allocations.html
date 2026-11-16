@@ -1,0 +1,120 @@
+{% extends 'admin/layout.html' %}
+{% block page_heading %}Teacher Allocations{% endblock %}
+{% block page_subtitle %}Use one semester at a time, then select multiple subjects from that semester only.{% endblock %}
+{% block quick_manual %}
+<div class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-500">Quick Manual</p>
+  <div class="mt-3 flex flex-wrap gap-2 text-sm font-semibold text-slate-700">
+    <span class="rounded-full bg-slate-100 px-4 py-2">1. Select teacher</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">2. Select year</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">3. Select course</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">4. Select one semester</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">5. Tick subjects</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">6. Save</span>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+  <form method="post" class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+    <h3 class="text-xl font-bold">Add Allocation</h3>
+    <select name="teacher_id" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <option value="">Select teacher</option>
+      {% for row in teachers %}<option value="{{ row.id }}">{{ row.name }}</option>{% endfor %}
+    </select>
+    <select name="academic_year" id="allocationYear" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <option value="">Select academic year</option>
+      {% for row in academic_years %}<option value="{{ row.label }}">{{ row.label }}</option>{% endfor %}
+    </select>
+    <select name="course" id="allocationCourse" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <option value="">Select course</option>
+      {% for row in courses %}<option value="{{ row.course_name }}">{{ row.course_name }}</option>{% endfor %}
+    </select>
+    <select name="semester" id="allocationSemester" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <option value="">Select semester</option>
+      {% for sem in range(1,7) %}<option value="{{ sem }}">Semester {{ sem }}</option>{% endfor %}
+    </select>
+    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+      <p class="font-semibold text-slate-800">Select subjects</p>
+      <div id="subjectChecklist" class="mt-3 grid gap-3 sm:grid-cols-2">
+        {% for row in subjects %}
+        <label class="subject-option hidden items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 {% if row.is_allocated %}opacity-60 cursor-not-allowed bg-slate-100{% endif %}" data-year="{{ row.academic_year }}" data-course="{{ row.course }}" data-semester="{{ row.semester }}" data-allocated="{{ 1 if row.is_allocated else 0 }}">
+          <input type="checkbox" name="subject_names" value="{{ row.subject_name }}" class="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600" {% if row.is_allocated %}disabled{% endif %}>
+          <span>
+            <span class="block font-semibold text-slate-800">{{ row.subject_name }}{% if row.is_allocated %} <span class="text-rose-600">(Not Available)</span>{% endif %}</span>
+            <span class="block text-xs text-slate-500">{{ row.course }} · Sem {{ row.semester }}{% if row.is_allocated and row.allocated_teacher %} · Disabled ({{ row.allocated_teacher }}){% endif %}</span>
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+      <p id="subjectHelp" class="mt-3 text-sm text-slate-500">Choose year, course, and one semester to see matching subjects.</p>
+    </div>
+    <button class="rounded-2xl bg-slate-950 text-white px-5 py-3 font-semibold">Save Allocation</button>
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">Already allocated subjects are disabled and marked as <strong>Not Available</strong>. Subject sharing is not allowed.</div>
+  </form>
+
+  <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm overflow-x-auto">
+    <h3 class="text-xl font-bold mb-4">Allocation Groups</h3>
+    <table class="min-w-full text-sm">
+      <tr class="border-b text-slate-500"><th class="py-3 text-left">Teacher</th><th class="py-3 text-left">Academic Year</th><th class="py-3 text-left">Course</th><th class="py-3 text-left">Semester</th><th class="py-3 text-left">Subjects</th></tr>
+      {% for row in allocation_groups %}
+      <tr class="border-b last:border-0 align-top">
+        <td class="py-3 font-semibold text-slate-900">{{ row.teacher_name }}</td>
+        <td class="py-3">{{ row.academic_year }}</td>
+        <td class="py-3">{{ row.course }}</td>
+        <td class="py-3">Semester {{ row.semester }}</td>
+        <td class="py-3">
+          <div class="flex flex-wrap gap-2">
+            {% for item in row.subject_names.split(' || ') %}
+              <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{{ item }}</span>
+            {% endfor %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="py-6 text-center text-slate-500">No allocations saved yet.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+<script>
+const yearSelect = document.getElementById('allocationYear');
+const courseSelect = document.getElementById('allocationCourse');
+const semSelect = document.getElementById('allocationSemester');
+const subjectOptions = Array.from(document.querySelectorAll('.subject-option'));
+const help = document.getElementById('subjectHelp');
+function filterAllocationSubjects(){
+  const year = yearSelect.value;
+  const course = courseSelect.value;
+  const semester = semSelect.value;
+  let visible = 0;
+  let available = 0;
+  let disabled = 0;
+  subjectOptions.forEach((label)=>{
+    const match = year && course && semester && label.dataset.year === year && label.dataset.course === course && label.dataset.semester === semester;
+    label.classList.toggle('hidden', !match);
+    label.classList.toggle('flex', match);
+    const checkbox = label.querySelector('input');
+    if (!match) checkbox.checked = false;
+    if (match) {
+      visible += 1;
+      if (label.dataset.allocated === '1') disabled += 1;
+      else available += 1;
+    }
+  });
+  if (!(year && course && semester)) {
+    help.textContent = 'Choose year, course, and one semester to see matching subjects.';
+  } else if (!visible) {
+    help.textContent = 'No subjects found for this year / course / semester.';
+  } else if (!available) {
+    help.textContent = 'All subjects for this selection are already allocated and not available.';
+  } else if (disabled) {
+    help.textContent = `${available} subject(s) available. ${disabled} subject(s) disabled as not available.`;
+  } else {
+    help.textContent = 'Tick one or more available subjects, then save.';
+  }
+}
+[yearSelect, courseSelect, semSelect].forEach((el)=>el.addEventListener('change', filterAllocationSubjects));
+filterAllocationSubjects();
+</script>
+{% endblock %}

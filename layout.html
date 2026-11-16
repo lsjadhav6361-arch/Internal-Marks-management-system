@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}IMMS Teacher{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif}</style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+  {% set nav_items = [
+    ('teacher.dashboard', 'Dashboard', '🏠'),
+    ('teacher.select_context', 'Select Context', '🧭'),
+    ('teacher.upload_excel', 'Upload Excel', '📤'),
+    ('teacher.analytics', 'Analytics', '📊'),
+    ('teacher.students_view', 'Student View', '👥'),
+    ('teacher.change_password', 'Change Password', '🔒')
+  ] %}
+
+  <div class="flex min-h-screen">
+    <aside class="hidden xl:flex w-80 bg-slate-950 text-white flex-col">
+      <div class="p-6 border-b border-white/10">
+        <div class="flex items-center gap-4">
+          <div class="h-14 w-14 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-extrabold text-xl">TM</div>
+          <div>
+            <h1 class="text-2xl font-extrabold">IMMS Teacher</h1>
+            <p class="text-sm text-slate-400">Subject and marks workspace</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-b border-white/10">
+        <div class="rounded-3xl bg-white/5 border border-white/10 p-4">
+          <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Signed In</p>
+          <h2 class="mt-2 text-lg font-bold break-words">{{ session.get('display_name', 'Teacher') }}</h2>
+          <p class="mt-1 text-xs text-cyan-200 uppercase tracking-[0.18em]">Teacher Panel</p>
+        </div>
+      </div>
+
+      <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        {% for endpoint, label, icon in nav_items %}
+          {% set href = url_for(endpoint) %}
+          {% set active = request.path == href %}
+          <a href="{{ href }}" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition {{ 'bg-white/10 border border-cyan-300/30' if active else 'hover:bg-white/5' }}">
+            <span>{{ icon }}</span>
+            <span class="font-medium">{{ label }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+      <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="px-5 sm:px-8 py-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-600">Teacher Panel</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">{% block teacher_page_title %}Teacher Module{% endblock %}</h2>
+            <p class="mt-1 text-sm text-slate-500">Manage subject-wise internal marks, student queries, exports, and confirmations.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ url_for('teacher.dashboard') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Dashboard</a>
+            <a href="{{ url_for('teacher.select_context') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700">Select Context</a>
+            <a href="{{ url_for('logout') }}" class="rounded-2xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white">Logout</a>
+          </div>
+        </div>
+
+        <div class="xl:hidden px-5 sm:px-8 pb-4 flex gap-2 overflow-x-auto">
+          {% for endpoint, label, icon in nav_items %}
+            {% set href = url_for(endpoint) %}
+            {% set active = request.path == href %}
+            <a href="{{ href }}" class="whitespace-nowrap rounded-2xl border px-4 py-2 text-sm font-semibold {{ 'border-cyan-200 bg-cyan-50 text-cyan-700' if active else 'border-slate-200 bg-white text-slate-600' }}">{{ icon }} {{ label }}</a>
+          {% endfor %}
+        </div>
+      </header>
+
+      <main class="p-5 sm:p-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="toastStack" class="pointer-events-none fixed right-4 top-4 z-50 flex w-[min(92vw,24rem)] flex-col gap-3 sm:right-6 sm:top-6">
+              {% for category, message in messages %}
+                <div class="toast-card pointer-events-auto translate-y-0 rounded-[1.5rem] border px-4 py-4 shadow-2xl backdrop-blur-xl transition-all duration-500 {% if category == 'success' %}border-emerald-200/80 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white{% elif category == 'error' %}border-rose-200/80 bg-gradient-to-r from-rose-500 to-orange-400 text-white{% elif category == 'warning' %}border-amber-200/80 bg-gradient-to-r from-amber-400 to-orange-400 text-white{% else %}border-indigo-200/80 bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white{% endif %}">
+                  <div class="flex items-start gap-3">
+                    <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-lg font-black">{% if category == 'success' %}✓{% elif category == 'error' %}!{% elif category == 'warning' %}⚠{% else %}i{% endif %}</div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-black uppercase tracking-[0.22em] text-white/80">{{ category|capitalize }}</p>
+                      <p class="mt-1 text-sm font-semibold leading-6 text-white">{{ message }}</p>
+                    </div>
+                    <button type="button" class="toast-close rounded-full bg-white/15 px-2 py-1 text-xs font-bold text-white/90 transition hover:bg-white/25">✕</button>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block teacher_content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.toast-card').forEach((toast, index) => {
+      const removeToast = () => {
+        toast.classList.add('opacity-0', 'translate-x-8', 'scale-95');
+        setTimeout(() => toast.remove(), 350);
+      };
+      const closeBtn = toast.querySelector('.toast-close');
+      if (closeBtn) closeBtn.addEventListener('click', removeToast);
+      setTimeout(removeToast, 2600 + (index * 250));
+    });
+  </script>
+</body>
+</html>

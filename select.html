@@ -1,0 +1,201 @@
+{% extends 'teacher/layout.html' %}
+{% block teacher_page_title %}Select Academic Context{% endblock %}
+{% block teacher_content %}
+<div class="space-y-6">
+  <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 p-6 text-white shadow-lg">
+    <div class="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10 blur-2xl"></div>
+    <div class="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-fuchsia-400/20 blur-2xl"></div>
+    <div class="relative grid gap-5 lg:grid-cols-[1.6fr_1fr] lg:items-center">
+      <div>
+        <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100">
+          Teacher Workspace
+        </div>
+        <h2 class="text-3xl font-bold tracking-tight md:text-4xl">Choose your current teaching context and start faster.</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
+          Select academic year, course, and semester to load only the correct students, semester-based IA settings, and your allocated subjects for Semesters 1 to 6.
+        </p>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+          <div class="text-xs uppercase tracking-[0.2em] text-slate-300">Present Academic Year</div>
+          <div class="mt-2 text-2xl font-bold">{{ current_academic_year }}</div>
+          <div class="mt-1 text-sm text-slate-200">Auto-highlighted for quick selection.</div>
+        </div>
+        <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+          <div class="text-xs uppercase tracking-[0.2em] text-slate-300">Available Semesters</div>
+          <div class="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+            {% for sem in semesters %}
+              <span class="rounded-full bg-white/15 px-3 py-1">Sem {{ sem }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+      <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Allocated Records</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900">{{ allocations|length }}</div>
+      <p class="mt-1 text-sm text-slate-600">All your teacher allocations available in one connected workflow.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+      <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Courses Assigned</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900">{{ courses|length }}</div>
+      <p class="mt-1 text-sm text-slate-600">Quickly switch between assigned courses without breaking your setup.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+      <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Academic Years</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900">{{ years|length }}</div>
+      <p class="mt-1 text-sm text-slate-600">Use the latest year or move to older contexts when needed.</p>
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h3 class="text-2xl font-bold text-slate-900">Load students and IA settings</h3>
+        <p class="mt-1 text-sm text-slate-500">Pick your context below. The form keeps your existing connections, routes, and database flow intact.</p>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700">
+        Safe connected redesign
+      </div>
+    </div>
+
+    <form method="post" class="grid gap-4 xl:grid-cols-[1fr_1fr_1fr_auto]">
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-700">Academic Year</label>
+        <select name="academic_year" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100">
+          <option value="">Select academic year</option>
+          {% for year in years %}
+            <option value="{{ year }}" {% if context.get('academic_year') == year %}selected{% elif not context.get('academic_year') and year == current_academic_year %}selected{% endif %}>{{ year }}{% if year == current_academic_year %} • Current{% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-700">Course</label>
+        <select name="course" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100">
+          <option value="">Select course</option>
+          {% for course in courses %}
+            <option value="{{ course }}" {% if context.get('course') == course %}selected{% endif %}>{{ course }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-700">Semester</label>
+        <select name="semester" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100">
+          <option value="">Select semester</option>
+          {% for semester in semesters %}
+            <option value="{{ semester }}" {% if context.get('semester')|string == semester|string %}selected{% endif %}>Semester {{ semester }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button class="w-full rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 xl:min-w-[220px]">
+          Load Students & Settings
+        </button>
+      </div>
+    </form>
+
+    <div class="mt-5 grid gap-3 md:grid-cols-3">
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="text-sm font-semibold text-slate-700">Tip 1</div>
+        <p class="mt-1 text-sm text-slate-500">Use the current academic year first for faster marks entry.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="text-sm font-semibold text-slate-700">Tip 2</div>
+        <p class="mt-1 text-sm text-slate-500">More semesters are available visually, but subject access still follows your real allocations.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="text-sm font-semibold text-slate-700">Tip 3</div>
+        <p class="mt-1 text-sm text-slate-500">After loading, open a subject card directly to continue with marks entry.</p>
+      </div>
+    </div>
+  </section>
+
+  {% if context and students and ia %}
+  <section class="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">Loaded classroom overview</h3>
+          <p class="mt-1 text-sm text-slate-500">Your selected context is ready for marks entry.</p>
+        </div>
+        <div class="inline-flex rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">
+          {{ context.academic_year }} • {{ context.course }} • Sem {{ context.semester }}
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Students Found</div>
+          <div class="mt-2 text-3xl font-bold text-slate-900">{{ students|length }}</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Subjects Allocated</div>
+          <div class="mt-2 text-3xl font-bold text-slate-900">{{ subjects|length }}</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="text-xs uppercase tracking-[0.16em] text-slate-500">Assessment Total</div>
+          <div class="mt-2 text-3xl font-bold text-slate-900">{{ ia.total_marks }}</div>
+        </div>
+      </div>
+
+      <div class="mt-5 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-5">
+        <div class="mb-3 text-sm font-semibold text-slate-700">Allocated subjects</div>
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {% for subject in subjects %}
+          <a href="{{ url_for('teacher.marks_entry', academic_year=context.academic_year, course=context.course, semester=context.semester, subject=subject) }}"
+             class="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Subject</div>
+                <div class="mt-2 text-base font-bold text-slate-900">{{ subject }}</div>
+              </div>
+              <div class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 group-hover:bg-indigo-100">Open</div>
+            </div>
+            <div class="mt-4 text-sm text-slate-500">Launch marks entry with the selected academic context.</div>
+          </a>
+          {% else %}
+          <p class="text-sm text-slate-500">No subjects available for this selection.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-xl font-bold text-slate-900">IA Scheme</h3>
+        <div class="mt-4 space-y-3 text-sm">
+          <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+            <span class="font-medium text-slate-600">Assignment</span>
+            <span class="font-bold text-slate-900">{{ ia.assignment_max }}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+            <span class="font-medium text-slate-600">IA 1</span>
+            <span class="font-bold text-slate-900">{{ ia.ia1_max }} → {{ ia.ia1_convert_to }}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+            <span class="font-medium text-slate-600">IA 2</span>
+            <span class="font-bold text-slate-900">{{ ia.ia2_max }} → {{ ia.ia2_convert_to }}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-2xl bg-indigo-50 px-4 py-3 text-indigo-900">
+            <span class="font-semibold">Total Internal</span>
+            <span class="text-lg font-bold">{{ ia.total_marks }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-xl font-bold text-slate-900">Professional touches you now have</h3>
+        <ul class="mt-4 space-y-3 text-sm text-slate-600">
+          <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span>Present academic year highlighted for quick selection.</span></li>
+          <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span>Extra semester options displayed in a clean, modern form.</span></li>
+          <li class="flex gap-3"><span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span>Subject cards styled for faster and more attractive navigation.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'admin/layout.html' %}
+
+{#
+  Redesigned template for editing a teacher.
+
+  This version introduces clearer formatting and adds a Reset Password
+  button that links to the admin.reset_teacher_password route.  The
+  previous minified template made modifications error‑prone and
+  difficult to maintain.  All existing functionality has been
+  preserved while adding new features.
+#}
+
+{% block page_heading %}Edit Teacher{% endblock %}
+
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+  <form method="post" class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+    <input type="text" name="name" value="{{ row.name }}" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+    <input type="email" name="email" value="{{ row.email }}" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+    <input type="text" name="phone" value="{{ row.phone or '' }}" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+    <input type="text" name="qualification" value="{{ row.qualification or '' }}" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+    <input type="text" name="experience" value="{{ row.experience or '' }}" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+    <textarea name="notes" class="w-full rounded-2xl border border-slate-300 px-4 py-3 min-h-28">{{ row.notes or '' }}</textarea>
+    <div class="flex gap-3 flex-wrap">
+      <button class="rounded-2xl bg-slate-950 text-white px-5 py-3 font-semibold">Update Teacher</button>
+      <a href="{{ url_for('admin.teachers') }}" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold">Cancel</a>
+      <a href="{{ url_for('admin.reset_teacher_password', teacher_id=row.id) }}" class="rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3 font-semibold text-amber-700">Reset Password</a>
+    </div>
+  </form>
+  <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+    <h3 class="text-xl font-bold mb-4">Current Allocations</h3>
+    <div class="space-y-3">
+      {% for item in allocations %}
+      <div class="rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4">
+        <div class="text-sm text-slate-700">{{ item.academic_year }} / {{ item.course }} / Sem {{ item.semester }} / {{ item.subject_name }}</div>
+        <a href="{{ url_for('admin.edit_allocation', allocation_id=item.id) }}" class="font-semibold text-indigo-600">Edit Allocation</a>
+      </div>
+      {% else %}
+      <p class="text-sm text-slate-500">No allocations found for this teacher.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

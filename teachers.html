@@ -1,0 +1,59 @@
+{% extends 'admin/layout.html' %}
+{% block page_heading %}Teachers{% endblock %}
+{% block page_subtitle %}Add teachers manually or in bulk, then map them to semester-wise subjects from the allocation page.{% endblock %}
+{% block quick_manual %}
+<div class="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-500">Quick Manual</p>
+  <div class="mt-3 flex flex-wrap gap-2 text-sm font-semibold text-slate-700">
+    <span class="rounded-full bg-slate-100 px-4 py-2">1. Add or upload teachers</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">2. Download template if needed</span>
+    <span class="rounded-full bg-slate-100 px-4 py-2">3. Open allocations</span>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="mt-2 flex flex-wrap gap-3">
+  <a href="{{ url_for('admin.download_teacher_template') }}" class="rounded-2xl bg-slate-950 text-white px-4 py-2.5 font-semibold">Download Template</a>
+  <a href="{{ url_for('admin.allocations') }}" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-semibold">Manage Allocations</a>
+</div>
+<div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr] mt-6">
+  <div class="space-y-6">
+    <form method="post" class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+      <h3 class="text-xl font-bold">Add Teacher</h3>
+      <input type="text" name="name" placeholder="Teacher name" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <input type="email" name="email" placeholder="Teacher email" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <input type="text" name="phone" placeholder="Phone" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+      <input type="text" name="qualification" placeholder="Qualification" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+      <input type="text" name="experience" placeholder="Experience" class="w-full rounded-2xl border border-slate-300 px-4 py-3">
+      <textarea name="notes" placeholder="Notes" class="w-full rounded-2xl border border-slate-300 px-4 py-3 min-h-28"></textarea>
+      <button class="rounded-2xl bg-slate-950 text-white px-5 py-3 font-semibold">Save Teacher</button>
+    </form>
+
+    <form method="post" action="{{ url_for('admin.upload_teacher_excel') }}" enctype="multipart/form-data" class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+      <h3 class="text-xl font-bold">Bulk Upload Teachers</h3>
+      <p class="text-sm text-slate-500">Sir feedback added here: upload multiple teachers in one step using the template.</p>
+      <input type="file" name="file" accept=".xlsx,.xls" class="w-full rounded-2xl border border-slate-300 px-4 py-3" required>
+      <button class="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700">Upload Excel</button>
+    </form>
+  </div>
+
+  <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm overflow-x-auto">
+    <h3 class="text-xl font-bold mb-4">Teacher Directory</h3>
+    <table class="min-w-full text-sm">
+      <tr class="border-b text-slate-500"><th class="py-3 text-left">Name</th><th class="py-3 text-left">Email</th><th class="py-3 text-left">Phone</th><th class="py-3 text-left">Allocations</th><th class="py-3 text-left">Current Allocation</th><th class="py-3 text-left">Actions</th></tr>
+      {% for row in teachers %}
+      <tr class="border-b last:border-0 align-top">
+        <td class="py-3 font-semibold text-slate-900">{{ row.name }}</td>
+        <td class="py-3">{{ row.email }}</td>
+        <td class="py-3">{{ row.phone or '-' }}</td>
+        <td class="py-3"><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ row.allocation_count or 0 }}</span></td>
+        <td class="py-3">{% if row.latest_allocation %}<span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{{ row.latest_allocation }}</span>{% else %}<span class="text-slate-400">No allocation yet</span>{% endif %}</td>
+        <td class="py-3 flex gap-3"><a href="{{ url_for('admin.edit_teacher', teacher_id=row.id) }}" class="font-semibold text-indigo-600">Edit</a><a href="{{ url_for('admin.delete_teacher', teacher_id=row.id) }}" onclick="return confirm('Delete this teacher?')" class="font-semibold text-rose-600">Delete</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="py-6 text-center text-slate-500">No teachers added yet.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
